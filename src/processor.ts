@@ -53,13 +53,13 @@ PenpieStakingProcessor.bind({
     ctx
   );
   // //快照用户余额
-  PenpiePoolTemplate.bind(
-    {
-      address: receiptTokenAddress,
-      startBlock: event.blockNumber
-    },
-    ctx
-  );
+  // PenpiePoolTemplate.bind(
+  //   {
+  //     address: receiptTokenAddress,
+  //     startBlock: event.blockNumber
+  //   },
+  //   ctx
+  // );
 });
 
 const PenpieReceiptTemplate = new PenpieReceiptTokenProcessorTemplate().onEventTransfer(async (event, ctx) => {
