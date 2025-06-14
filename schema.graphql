@@ -1,0 +1,59 @@
+type Pools @entity {
+    id: ID!
+    chain_id: Int!
+    timestamp: Int!
+    creation_block_number: Int!
+    underlying_token_address: String!
+    underlying_token_index: Int!
+    underlying_token_symbol: String!
+    underlying_token_decimals: String!
+    receipt_token_address: String
+    receipt_token_symbol: String
+    receipt_token_decimals: String
+    pool_address: String!
+    pool_symbol: String!
+}
+
+type PoolSnapshot @entity {
+    id: ID!
+    timestamp: Int!
+    block_date: String!
+    chain_id: Int!
+    underlying_token_address: String!
+    underlying_token_index: Int!
+    pool_address: String!
+    underlying_token_amount: Float!
+    underlying_token_amount_usd: Float
+    total_fees_usd: Float
+}
+
+type PositionSnapshot @entity {
+    id: ID!
+    timestamp: Int!
+    block_date: String!
+    chain_id: Int!
+    pool_address: String!
+    user_address: String!
+    underlying_token_address: String!
+    underlying_token_index: Int!
+    underlying_token_amount: Float!
+
+    underlying_token_amount_usd: Float
+    total_fees_usd: Float
+}
+
+type RewardPoolUser @entity {
+    id: ID!
+    user: String!
+    reward_pool: String!
+}
+
+type Rewcache @entity {
+    id: ID!
+    SY: String!
+    LP: String!
+    rewardPool: String!
+
+    underlying_token_address: String!
+    underlying_token_decimals: Int!
+}

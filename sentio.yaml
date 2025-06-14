@@ -1,0 +1,4 @@
+project: penpie-points
+storage:
+  shared: true
+  isolation: false
