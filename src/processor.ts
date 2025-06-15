@@ -63,25 +63,25 @@ PenpieStakingProcessor.bind({
 });
 
 const PenpieReceiptTemplate = new PenpieReceiptTokenProcessorTemplate().onEventTransfer(async (event, ctx) => {
-  const id = `${event.address.toLowerCase()}-${event.args.to.toLowerCase()}`;
-  const entity = await ctx.store.get(RewardPoolUser, id);
-  if (!entity) {
-    const newEntity = new RewardPoolUser({
-      id: id,
-      user: event.args.to.toLowerCase(),
-      reward_pool: event.address.toLowerCase(),
-  });
-    await ctx.store.upsert(newEntity);
-  }
-  //记录日志
-  ctx.eventLogger.emit("Events",{
-      chain_id: CHAIN_ID,
-      user_address: event.args.to.toLowerCase(),
-      pool_address:event.address.toLowerCase(),
-      amount: event.args.value,
-      amount_usd: null,
-      event_type: 'Staked'
-  })
+  // const id = `${event.address.toLowerCase()}-${event.args.to.toLowerCase()}`;
+  // const entity = await ctx.store.get(RewardPoolUser, id);
+  // if (!entity) {
+  //   const newEntity = new RewardPoolUser({
+  //     id: id,
+  //     user: event.args.to.toLowerCase(),
+  //     reward_pool: event.address.toLowerCase(),
+  // });
+  //   await ctx.store.upsert(newEntity);
+  // }
+  // //记录日志
+  // ctx.eventLogger.emit("Events",{
+  //     chain_id: CHAIN_ID,
+  //     user_address: event.args.to.toLowerCase(),
+  //     pool_address:event.address.toLowerCase(),
+  //     amount: event.args.value,
+  //     amount_usd: null,
+  //     event_type: 'Staked'
+  // })
 });
 
 
