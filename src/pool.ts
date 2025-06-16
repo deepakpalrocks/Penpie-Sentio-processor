@@ -10,7 +10,7 @@ import { getDateInfo } from './helper.js';
 export async function createPoolSnapshotIfNotExist(ctx: EthContext, rewcache: Rewcache) {
   const { d, blockDate } = getDateInfo(ctx);
   const sy = getStandardizedYieldContractOnContext(ctx, rewcache.SY);
-  const id = `${sy.address.toLowerCase()}-${d}`;
+  const id = `${rewcache.rewardPool.toLowerCase()}-${d}`;
 
   if (await ctx.store.get(PoolSnapshot, id)) {
     return;
@@ -24,8 +24,7 @@ export async function createPoolSnapshotIfNotExist(ctx: EthContext, rewcache: Re
   const total_amount = (await sy.totalSupply()).scaleDown(decimals);
   const penpie_rate = penpieActiveBalance.dividedBy(totalActiveSupply);
   const amount = total_amount.multipliedBy(penpie_rate);
-  // console.log(`block_number:${ctx.blockNumber},penpieActiveBalance: ${penpieActiveBalance}, totalActiveSupply: ${totalActiveSupply},amount: ${amount}, penpie_rate: ${penpie_rate}`);
-
+  
   const entity = new PoolSnapshot({
     id: id,
     timestamp: d,
@@ -40,7 +39,7 @@ export async function createPoolSnapshotIfNotExist(ctx: EthContext, rewcache: Re
   await ctx.store.upsert(entity);
 }
 
-export async function createPoolIfNotExist(ctx: EthContext,syAddr:string, rewardPoolAddr: string, receiptTokenAddr: string, pendleMarketAddr: string) {
+export async function createPoolIfNotExist(ctx: EthContext,syAddr:string, receiptTokenAddr: string, pendleMarketAddr: string) {
   syAddr = syAddr.toLowerCase();
 
   if (await ctx.store.get(Pools, syAddr)) {
@@ -53,7 +52,7 @@ export async function createPoolIfNotExist(ctx: EthContext,syAddr:string, reward
   const pendleMarket = getPendleMarketContractOnContext(ctx, pendleMarketAddr);
 
   const pool = new Pools({
-    id: syAddr,
+    id: receiptTokenAddr.toLowerCase(),
     chain_id: CHAIN_ID,
     timestamp: Math.floor(ctx.timestamp.getTime() / 1000),
     creation_block_number: ctx.blockNumber,

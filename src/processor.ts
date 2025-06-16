@@ -13,8 +13,6 @@ import {
 import { RewardPoolUser, Rewcache, PositionSnapshot } from './schema/schema.js';
 import {
   CHAIN_ID,
-  // EQB_BOOSTER_ADDRESS,
-  // EQB_BOOSTER_START_BLOCK,
   ONE_DAY_IN_MINUTE,
   PENPIE_STAKING_ADDRESS,
   PENPIE_STAKING_START_BLOCK
@@ -31,20 +29,17 @@ PenpieStakingProcessor.bind({
   network: EthChainId.SONIC_MAINNET,
   startBlock: PENPIE_STAKING_START_BLOCK,
 }).onEventPoolAdded(async (event, ctx) => {
-  //记录pools信息
-  const penpieStaking = getPenpieStakingContractOnContext(ctx, PENPIE_STAKING_ADDRESS);
-  // const poolInfo = await booster.poolInfo(event.args._pid);
+  // Get the pool info
   const marketAddress = event.args._market;
-  const rewarderAddress = event.args._rewarder;
   const receiptTokenAddress = event.args._receiptToken;
   const market = getPendleMarketContractOnContext(ctx, marketAddress);
   const tokens = await market.readTokens();
-  await createPoolIfNotExist(ctx, tokens._SY, rewarderAddress, receiptTokenAddress, marketAddress);
+  await createPoolIfNotExist(ctx, tokens._SY, receiptTokenAddress, marketAddress);
 
-  //创建缓存
-  await createRewcache(ctx, marketAddress, tokens, rewarderAddress, receiptTokenAddress);
+  // store the pool info
+  await createRewcache(ctx, marketAddress, tokens, receiptTokenAddress);
 
-  // // 记录所有用户
+  // to collect all users
   PenpieReceiptTemplate.bind(
     {
       address: receiptTokenAddress,
@@ -52,56 +47,43 @@ PenpieStakingProcessor.bind({
     },
     ctx
   );
-  // //快照用户余额
-  // PenpiePoolTemplate.bind(
-  //   {
-  //     address: receiptTokenAddress,
-  //     startBlock: event.blockNumber
-  //   },
-  //   ctx
-  // );
+  // to create snapshot using collected users and pool info
+  PenpiePoolTemplate.bind(
+    {
+      address: receiptTokenAddress,
+      startBlock: event.blockNumber
+    },
+    ctx
+  );
 });
 
 const PenpieReceiptTemplate = new PenpieReceiptTokenProcessorTemplate().onEventTransfer(async (event, ctx) => {
-  // const id = `${event.address.toLowerCase()}-${event.args.to.toLowerCase()}`;
-  // const entity = await ctx.store.get(RewardPoolUser, id);
-  // if (!entity) {
-  //   const newEntity = new RewardPoolUser({
-  //     id: id,
-  //     user: event.args.to.toLowerCase(),
-  //     reward_pool: event.address.toLowerCase(),
-  // });
-  //   await ctx.store.upsert(newEntity);
-  // }
-  // //记录日志
-  // ctx.eventLogger.emit("Events",{
-  //     chain_id: CHAIN_ID,
-  //     user_address: event.args.to.toLowerCase(),
-  //     pool_address:event.address.toLowerCase(),
-  //     amount: event.args.value,
-  //     amount_usd: null,
-  //     event_type: 'Staked'
-  // })
+  const id = `${event.address.toLowerCase()}-${event.args.to.toLowerCase()}`;
+  const entity = await ctx.store.get(RewardPoolUser, id);
+  if (!entity) {
+    const newEntity = new RewardPoolUser({
+      id: id,
+      user: event.args.to.toLowerCase(),
+      reward_pool: event.address.toLowerCase(),
+  });
+    await ctx.store.upsert(newEntity);
+  }
+  // log the event
+  ctx.eventLogger.emit("Events",{
+      chain_id: CHAIN_ID,
+      user_address: event.args.to.toLowerCase(),
+      pool_address:event.address.toLowerCase(),
+      amount: event.args.value,
+      amount_usd: null,
+      event_type: 'Staked'
+  })
 });
 
 
 
 const PenpiePoolTemplate = new PenpieReceiptTokenProcessorTemplate().onTimeInterval(
   async (_, ctx) => {
-    let rewcache = (await ctx.store.get(Rewcache, ctx.address.toLowerCase()));
-    if (!rewcache) {
-      console.log("First attempt failed, trying without toLowerCase");
-      rewcache = await ctx.store.get(Rewcache, ctx.address);
-    }
-    if (!rewcache) {
-      console.log("Second attempt failed, trying with original case");
-      rewcache = await ctx.store.get(Rewcache, ctx.address.toUpperCase());
-    }
-    if (!rewcache) {
-      console.log("All attempts failed, skipping interval");
-      return;
-    }
-
+    let rewcache = (await ctx.store.get(Rewcache, ctx.address.toLowerCase()))!;
     await createPoolSnapshotIfNotExist(ctx, rewcache);
 
     const rc: UserPositionRaw = {};
@@ -136,7 +118,6 @@ async function createRewcache(
   ctx: EthContext,
   marketAddr: string,
   tokens: Awaited<ReturnType<PendleMarketBoundContractView['readTokens']>>,
-  rewardPoolAddr: string,
   receiptTokenAddr: string
 ) {
   console.log(`tokens`, tokens);

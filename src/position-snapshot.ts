@@ -24,7 +24,7 @@ export async function addLPPositionSnapshot(
     return;
   }
 
-  const users = (
+  let users = (
     await ctx.store.list(RewardPoolUser, [
       {
         field: 'reward_pool',
@@ -33,6 +33,7 @@ export async function addLPPositionSnapshot(
       },
     ])
   ).map((e) => e.user).filter((user) => user !== '0x0000000000000000000000000000000000000000');
+  users = [... new Set(users)];
 
 
   const balances = await readAllUserERC20Balances(ctx, marcache.rewardPool, users);
